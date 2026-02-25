@@ -1,0 +1,77 @@
+# CU Pathfinder Implementation Plan
+
+This document outlines the architecture, DevOps strategy, and step-by-step plan for building **CU Pathfinder: The Inclusive Campus Companion**.
+
+## User Review Required
+> [!IMPORTANT]
+> - **Data Sourcing**: Since we lack official CU Boulder map data, I recommend using the **OpenStreetMap (OSM) Overpass API** to extract campus buildings, footways, and accessibility nodes (like stairs or wheelchair ramps) to populate our Neo4j database. Let me know if you approve this approach!
+> - **GitHub Repository**: For CI/CD to work seamlessly with Vercel and Render, you will need to push this codebase to a Git repository (like GitHub). Let me know when you are ready to initialize git and push the code.
+
+## 1. Current File Structure Explanation
+
+The project has been initialized with three main directories corresponding to the stack:
+
+* `frontend/`: This is a standard **Vite + React (TypeScript)** setup.
+  * [package.json](file:///Users/prakashthorat/cu-pathfinder/backend/package.json) & [vite.config.ts](file:///Users/prakashthorat/cu-pathfinder/frontend/vite.config.ts): Configuration files for Vite.
+  * `src/`: Where our React components, context, and Leaflet map will live.
+* `backend/`: This is a standard **NestJS (TypeScript)** application.
+  * [nest-cli.json](file:///Users/prakashthorat/cu-pathfinder/backend/nest-cli.json) & [package.json](file:///Users/prakashthorat/cu-pathfinder/backend/package.json): Configuration for NestJS and scripts.
+  * `src/`: Where we will define our Neo4j modules, Gemini API services, and controllers.
+* `ingestion/`: A Python environment folder for data engineering.
+  * `venv/`: A standard Python virtual environment. We will add a `requirements.txt` and python scripts here to pull data (e.g., from OpenStreetMap) and push it to Neo4j.
+
+## 2. Proposed Architecture & Tech Stack
+
+### Frontend (User Interface)
+* **Vite + React + TS**: For building a fast, component-driven UI.
+* **Leaflet (`react-leaflet`)**: For rendering the interactive campus map, drawing routes, and placing accessible/safe markers.
+* **TailwindCSS** (Recommended for design): To achieve a premium, inclusive, and highly readable design.
+
+### Backend (Logic & AI)
+* **NestJS**: A robust framework that forces good architecture.
+* **Gemini API**: The "brain" of the app. It will take natural language requests (e.g., "I'm on crutches, need to get to C4C safely"), apply our Ethical Framework, and return structured constraints (e.g., `requires_elevator=true, avoid_dark_paths=true`).
+* **Neo4j Driver**: We will use the official `neo4j-driver` to communicate with the DB using Cypher queries. We will leverage Neo4j's Graph Data Science (GDS) or native pathfinding algorithms (like Shortest Path / A*) to calculate routes based on the constraints provided by Gemini.
+
+### Database (Data Layer)
+* **Neo4j Aura DB**: A cloud graph database. Our campus will be modeled as a graph:
+  * **Nodes**: Intersections, Building Entrances, Amenities.
+  * **Relationships**: `[CONNECTS_TO]` with properties like `distance`, `has_stairs`, `is_lit`, `is_wheelchair_accessible`.
+
+## 3. CI/CD and DevOps Strategy
+
+Since you want to handle DevOps entirely, here is the unified pipeline approach:
+
+1. **Version Control**: Git / GitHub monorepo containing `frontend`, `backend`, and `ingestion` folders.
+2. **CI/CD Pipeline (GitHub Actions)**:
+   * **On PR**: Run ESLint and TypeScript compilation checks for both frontend and backend.
+   * **On Push to `main`**: Trigger deployments to our hosting platforms.
+3. **Frontend Hosting (Vercel)**:
+   * Vercel will automatically detect the VITE framework. We simply configure the Root Directory to `frontend`. Every push to `main` builds and deploys the UI.
+4. **Backend Hosting (Render)**:
+   * Render will host the NestJS application as a Web Service. We configure the Root Directory to `backend` and use `npm run build` and `npm run start:prod`. Environment variables (Neo4j URIs, Gemini Keys) will be injected securely in Render's dashboard.
+
+## 4. Development Workflow (The Coaching Approach)
+
+As your technical coach, we will approach this build **step-by-step**. For every feature, I will:
+1. Show you the exact lines of code we are about to write.
+2. Explain the "Why" and "How" of each line.
+3. Wait for you to type it out, or (since I can write to files directly) write it for you while you review the diffs and ask questions.
+
+### Project Roadmap
+1. **Phase 1: Ingestion & Database Design** (Drafting our graph schema and scraping OpenStreetMap).
+2. **Phase 2: Database Connection** (Connecting NestJS to Neo4j and building basic routing APIs).
+3. **Phase 3: The AI Brain** (Integrating Gemini to parse user requests and enforce the AI for Good guidelines).
+4. **Phase 4: The Map UI** (Building the Leaflet frontend and making it look stunning and premium).
+5. **Phase 5: DevOps** (Writing GitHub Actions and deploying to Vercel/Render).
+
+---
+## Verification Plan
+
+### Automated Tests
+* **Backend**: We will write standard Jest unit tests for the Gemini AI service and Neo4j connection services to ensure the app doesn't crash on invalid data.
+* **Frontend**: We will use Vite's build command (`npm run build`) in GitHub Actions as a basic CI check to ensure the UI compiles successfully.
+
+### Manual Verification
+* **Data Verification**: Inspecting nodes in Neo4j Bloom/Browser to ensure building properties are correct.
+* **Pathing Verification**: Testing API endpoints via Postman or cURL manually to verify routes avoid stairs when `accessible=true`.
+* **Deployment Validation**: Verifying live Vercel and Render links post-deployment.
