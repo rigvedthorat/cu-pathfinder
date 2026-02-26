@@ -1,0 +1,11 @@
+version: "1"
+services:
+  - type: web
+    name: cu-pathfinder-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_VERSION
+        value: 22.x
