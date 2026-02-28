@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { GraphService } from './graph/graph.service';
 
 describe('AppController', () => {
   let appController: AppController;
@@ -8,7 +9,15 @@ describe('AppController', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [AppService],
+      providers: [
+        AppService,
+        {
+          provide: GraphService,
+          useValue: {
+            getDatabaseHealth: jest.fn().mockResolvedValue(true),
+          },
+        },
+      ],
     }).compile();
 
     appController = app.get<AppController>(AppController);
