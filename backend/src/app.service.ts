@@ -13,7 +13,7 @@ export class AppService {
     return 'Welcome to the CU Pathfinder API.';
   }
 
-  // The core endpoint that takes natural language, extracts constraints, and queries Neo4h database for the appropriate route
+  // The core endpoint that takes natural language, extracts constraints, and queries Neo4j database for the appropriate route
 
   async getRouteFromNaturalLanguage(userPrompt: string, startNode: string, endNode: string) {
     this.logger.log(`Evaluating request: "${userPrompt}"`);
