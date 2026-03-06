@@ -1,6 +1,12 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+// Prop from App.tsx
+
+interface CampusMapProps {
+    routeData?: any
+}
 
 // Fixing default leaflet marker icons
 
@@ -15,7 +21,10 @@ L.Icon.Default.mergeOptions({
 
 const CU_BOULDER_CENTER: [number, number] = [40.0076, -105.2659];
 
-export default function CampusMap() {
+export default function CampusMap({ routeData }: CampusMapProps) {
+    // 1. If we have a route, extract the latitude and longitude from the Neo4j data
+    // Leaflet take the data (latitude, longitude as an array)
+    const routeCoordinates = routeData?.route?.map((node: any) => [node.latitude, node.longitude]) || [];
     return (
         <div className='h-full w-full rounded-xl overflow-hidden shadow-lg border-slate-200'>
             <MapContainer
@@ -38,6 +47,15 @@ export default function CampusMap() {
                         </div>
                     </Popup>
                 </Marker>
+
+                {/* Draw the AI-gererated path*/}
+                {routeCoordinates.length > 0 && (
+                    <Polyline positions={routeCoordinates}
+                        color='indigo'
+                        weight={5}
+                        opacity={0.8}
+                    />
+                )}
             </MapContainer>
         </div>
     );
