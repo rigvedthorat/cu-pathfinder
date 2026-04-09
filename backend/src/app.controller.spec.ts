@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { GraphService } from './graph/graph.service';
 
 describe('AppController', () => {
   let appController: AppController;
@@ -10,11 +9,14 @@ describe('AppController', () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
       providers: [
-        AppService,
         {
-          provide: GraphService,
+          provide: AppService,
           useValue: {
-            getDatabaseHealth: jest.fn().mockResolvedValue(true),
+            getHello: jest
+              .fn()
+              .mockReturnValue('Welcome to the CU Pathfinder API.'),
+            getDatabaseHealth: jest.fn(),
+            getRouteFromNaturalLanguage: jest.fn(),
           },
         },
       ],
@@ -24,8 +26,10 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return the welcome message', () => {
+      expect(appController.getHello()).toBe(
+        'Welcome to the CU Pathfinder API.',
+      );
     });
   });
 });

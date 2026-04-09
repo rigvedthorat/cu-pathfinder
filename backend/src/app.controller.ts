@@ -3,9 +3,7 @@ import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
-  constructor(
-    private readonly appService: AppService,
-  ) { }
+  constructor(private readonly appService: AppService) {}
 
   @Get()
   getHello(): string {
@@ -23,6 +21,10 @@ export class AppController {
 
   @Post('route')
   async getRoute(@Body() body: { prompt: string; start: string; end: string }) {
-    return this.appService.getRouteFromNaturalLanguage(body.prompt, body.start, body.end)
+    return this.appService.getRouteFromNaturalLanguage(
+      body.prompt,
+      body.start,
+      body.end,
+    );
   }
 }
