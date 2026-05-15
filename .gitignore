@@ -6,3 +6,12 @@ __pycache__/
 .DS_Store
 dist/
 build/
+# Personal docs, resumes, design PDF's
+*.pdf
+#Editor / IDE
+.vscode/
+.idea/
+# Duplicate Python venv (we have ingestion/.venv; the older venv/ is redundant)
+ingestion/venv/
+# Local conversation/transcript artifacts
+previous_chat.md

@@ -1,0 +1,54 @@
+[
+    {
+        "canonical_name": "Discovery Learning Center",
+        "short_name": "DLC",
+        "aliases": [
+            "discovery learning center",
+            "dlc"
+        ],
+        "latitude": 40.00778,
+        "longitude": -105.26353,
+        "category": "academic"
+    },
+    {
+        "canonical_name": "Wolf Law Building",
+        "aliases": [
+            "wolf law building",
+            "wolf law",
+            "law building"
+        ],
+        "latitude": 40.0009,
+        "longitude": -105.2641,
+        "category": "academic"
+    },
+    {
+        "canonical_name": "Folsom Field",
+        "aliases": [
+            "folsom field",
+            "folsom stadium",
+            "stadium"
+        ],
+        "latitude": 40.0097,
+        "longitude": -105.2669,
+        "category": "landmark"
+    },
+    {
+        "canonical_name": "Farrand Field",
+        "aliases": [
+            "farrand field"
+        ],
+        "latitude": 40.00592,
+        "longitude": -105.26945,
+        "category": "landmark"
+    },
+    {
+        "canonical_name": "Kittredge Market",
+        "aliases": [
+            "kittredge market",
+            "kitt market"
+        ],
+        "latitude": 40.0037,
+        "longitude": -105.2622,
+        "category": "dining"
+    }
+]
