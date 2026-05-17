@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
 import { AppService } from './app.service';
+import { RouteRequestDto } from './route/route.dto';
 
 @Controller()
 export class AppController {
@@ -20,9 +21,9 @@ export class AppController {
   }
 
   @Post('route')
-  async getRoute(@Body() body: { prompt: string; start: string; end: string }) {
+  async getRoute(@Body() body: RouteRequestDto) {
     return this.appService.getRouteFromNaturalLanguage(
-      body.prompt,
+      body.prompt ?? '',
       body.start,
       body.end,
     );
