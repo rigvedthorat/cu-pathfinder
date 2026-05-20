@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
 import { RouteConstraints } from '../graph/graph.types';
 
 @Injectable()
@@ -8,6 +8,16 @@ export class AiService {
     private readonly logger = new Logger(AiService.name);
     private readonly ai?: GoogleGenAI;
     private readonly hasApiKey: boolean;
+    private readonly GEMINI_TIMEOUT_MS = 8000; //hang up if Gemini doesn't respond in 8s
+    private readonly responseSchema = {
+        type: Type.OBJECT,
+        properties: {
+            requireAccessible: { type: Type.BOOLEAN },
+            requireLitPath: { type: Type.BOOLEAN },
+            escalateToPolice: { type: Type.BOOLEAN},
+        },
+        required: ['requireAccessible', 'requireLitPath', 'escalateToPolice'],
+    };
 
     constructor(private configService: ConfigService) {
         const apiKey = this.configService.get<string>('GEMINI_API_KEY');
@@ -43,13 +53,29 @@ export class AiService {
             - requireLitPath: true if they mention it's dark,  late, or they feel unsafe.
             - escalateToPolice: true ONLY if they are in immediate danger (stalker, hurt, scared).
             `;
-            const response = await this.ai.models.generateContent({
+
+            //Build the Gemini call as a promise
+            const geminiCall = this.ai.models.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: trimmedPrompt,
                 config: {
-                    systemInstruction: systemInstruction, responseMimeType: 'application/json', temperature: 0.1,
+                    systemInstruction,
+                    responseMimeType: 'application/json',
+                    responseSchema: this.responseSchema, //locking the response shape
+                    temperature: 0.1,
                 },
             });
+
+            //Reject Gemini after timeout
+            const timeout = new Promise<never>((_, reject) =>
+                setTimeout(
+                    () => reject(new Error(`Gemini timeout after ${this.GEMINI_TIMEOUT_MS}ms`)),
+                    this.GEMINI_TIMEOUT_MS,
+                ),
+            );
+
+            //Whichever finishes first, wins. If timeout wins, we throw and fall into catch.
+            const response = await Promise.race([geminiCall, timeout]);
             const resultText = response.text;
             if (!resultText) throw new Error('Empty response from Gemini');
             const parsedResponse = this.parseAiResponse(resultText);
@@ -60,18 +86,27 @@ export class AiService {
                 escalateToPolice: parsedResponse.escalateToPolice || localFallback.escalateToPolice,
             };
         } catch (error) {
-            this.logger.error('Failed to evaluate path with Gemini', error);
+            const message = error instanceof Error ? error.message : 'unknown error';
+            this.logger.warn(`Gemini evaluation failed (${message}); using local fallback`);
             return localFallback;
         }
     }
 
     private parseAiResponse(resultText: string): RouteConstraints {
-        const parsed = JSON.parse(resultText) as Partial<RouteConstraints>;
+        const parsed: unknown = JSON.parse(resultText);
+
+        //JSON.parse can return a string, number, array, or null
+        // We need an object before reading the fields off it
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            throw new Error('Gemini returned non-object JSON');
+        }
+
+        const obj = parsed as Partial<RouteConstraints>;
 
         return {
-            requireAccessible: parsed.requireAccessible === true,
-            requireLitPath: parsed.requireLitPath === true,
-            escalateToPolice: parsed.escalateToPolice === true,
+            requireAccessible: obj.requireAccessible === true,
+            requireLitPath: obj.requireLitPath === true,
+            escalateToPolice: obj.escalateToPolice === true,
         };
     }
 

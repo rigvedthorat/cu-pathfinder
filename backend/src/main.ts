@@ -2,12 +2,23 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
   const config = app.get(ConfigService);
-  
+
+  app.use(
+    helmet({
+      // Disable CSP for a pure JSON API - only use it for HTML pages
+      contentSecurityPolicy: false,
+
+      //Helemt's CORS can class with default CORS, hence we use default CORS
+      crossOriginResourcePolicy: false,
+    }),
+  );
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, //strip unknown properties

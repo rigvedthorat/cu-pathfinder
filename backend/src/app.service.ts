@@ -11,6 +11,7 @@ import {
   RoutePoint,
   RouteStrategy,
 } from './graph/graph.types';
+import { redactPrompt } from './common/log-redact'
 
 interface SuggestedPlace {
   displayName: string;
@@ -53,7 +54,8 @@ export class AppService {
     startNode: string,
     endNode: string,
   ): Promise<RouteApiResponse> {
-    this.logger.log(`Evaluating request: "${userPrompt}"`);
+    this.logger.log(`Evaluating request 
+      ${JSON.stringify(redactPrompt(userPrompt))}`);
 
     const constraints = await this.aiService.evaluateRoutingRequest(userPrompt);
     this.logger.log(`Constraints extracted: ${JSON.stringify(constraints)}`);
